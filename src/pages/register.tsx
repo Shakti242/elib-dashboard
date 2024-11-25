@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom"; // Adjust if using Next.js or other router
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const RegisterPage = () => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault(); // Prevent form refresh
+        console.log("Email:", email);
+        console.log("Password:", password);
+    };
+
     return (
         <section className="flex justify-center items-center h-screen">
             <Card className="mx-auto max-w-sm">
@@ -22,7 +31,7 @@ const RegisterPage = () => {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid gap-4">
+                    <form onSubmit={handleSubmit} className="grid gap-4">
                         {/* Full Name Field */}
                         <div className="grid gap-2">
                             <Label htmlFor="name">Full Name</Label>
@@ -36,6 +45,8 @@ const RegisterPage = () => {
                                 type="email"
                                 placeholder="m@example.com"
                                 required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                         {/* Password Field */}
@@ -46,20 +57,23 @@ const RegisterPage = () => {
                                 type="password"
                                 placeholder="Create a strong password"
                                 required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
+
                         {/* Buttons */}
                         <Button type="submit" className="w-full">
                             Register
                         </Button>
                         <Button variant="outline" className="w-full">
-                            SignUp with Github
+                            Sign Up with GitHub
                         </Button>
-                    </div>
+                    </form>
                     {/* Footer with Link to Login */}
                     <div className="mt-4 text-center text-sm">
                         Already have an account?{" "}
-                        <Link to="/login" className="underline">
+                        <Link to="/auth/login" className="underline">
                             Sign in
                         </Link>
                     </div>
