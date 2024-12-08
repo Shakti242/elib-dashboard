@@ -77,7 +77,6 @@ const LoginPage = () => {
               className="w-full"
               disabled={mutation.isPending}>
               {mutation.isPending && <LoaderCircle className="animate-spin" />}
-
               <span className="ml-2">Sign in</span>
             </Button>
 
