@@ -1,3 +1,4 @@
+import useTokenStore from '@/store';
 import axios from 'axios';
 
 const api = axios.create({
@@ -6,6 +7,13 @@ const api = axios.create({
         'Content-Type': 'application/json',
 
     },
+});
+api.interceptors.request.use((config) => {
+    const token = useTokenStore.getState().token;
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
 });
 
 export const login = async (data: { email: string; password: string }) =>
