@@ -20,3 +20,14 @@ export const login = async (data: { email: string; password: string }) =>
     api.post('/api/users/login', data);
 export const register = async (data: { name: string; email: string; password: string }) =>
     api.post('/api/users/register', [data]);
+export const getBooks = async () => api.get('/api/books');
+
+export const createBook = async (data: FormData) => {
+    const token = useTokenStore.getState().token;
+    api.post('/api/books', data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+        },
+    })
+};

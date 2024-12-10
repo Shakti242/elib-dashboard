@@ -26,9 +26,12 @@ const LoginPage = () => {
 
   const mutation = useMutation({
     mutationFn: login,
-    onSuccess: (response)  => {
-      setToken(response.data.token);
+    onSuccess: (response) => {
+      console.log(response, "Response")
+
+      setToken(response.data.accessToken);
       navigate('/dashboard/home');
+
     },
   });
 
