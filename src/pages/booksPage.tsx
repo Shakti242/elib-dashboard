@@ -42,7 +42,7 @@ const BooksPage = () => {
   const queryClient = useQueryClient();
 
   // Fetch books data
-  const { data, isLoading, isError } = useQuery({
+  const { data } = useQuery({
     queryKey: ['books'],
     queryFn: getBooks,
     staleTime: 10000, // in milliseconds
