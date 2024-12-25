@@ -21,6 +21,7 @@
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "dotenv": "^16.4.7",
     "localforage": "^1.10.0",
     "lucide-react": "^0.460.0",
     "match-sorter": "^8.0.0",
