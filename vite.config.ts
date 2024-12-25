@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'node:path';
 
 // Ensure PORT is always a string (fallback to default)
-const PORT = process.env.PORT || "3000";
+const PORT = process.env.PORT || "4173";
 
 export default defineConfig({
   plugins: [react()],
