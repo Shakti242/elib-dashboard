@@ -1,52 +1,94 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import useTokenStore from '@/store';
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 
+// Axios instance configuration
 const api = axios.create({
-    // baseURL: 'http://localhost:5513',
     baseURL: 'https://elib-production.up.railway.app',
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-api.interceptors.request.use((config) => {
+// Interceptor to attach Authorization token to every request
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const token = useTokenStore.getState().token;
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
+}, (error) => {
+    console.error('Request Interceptor Error:', error);
+    return Promise.reject(error);
 });
 
-export const login = async (data: { email: string; password: string }) =>
-    api.post('/api/users/login', data);
-
-export const register = async (data: { name: string; email: string; password: string }) =>
-    api.post('/api/users/register', [data]);
-
-export const getBooks = async () => api.get('/api/books');
-
-export const createBook = async (data: FormData) => {
-    const token = useTokenStore.getState().token;
-    return api.post('/api/books', data, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`,
-        },
-    });
+// ✅ LOGIN
+export const login = async (data: { email: string; password: string }) => {
+    try {
+        const response = await api.post('/api/users/login', data);
+        console.log('Login Response:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('Login Error:', error.response?.data || error.message);
+        throw error;
+    }
 };
 
-// Updated deleteBook function
-export const deleteBook = async (id: string) => {
-    const token = useTokenStore.getState().token;
+// ✅ REGISTER
+export const register = async (data: { name: string; email: string; password: string }) => {
     try {
-        const response = await api.delete(`/api/books/${id}`, {
+        const response = await api.post('/api/users/register', data);
+        console.log('Register Response:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('Register Error:', error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ GET BOOKS
+export const getBooks = async () => {
+    try {
+        const response = await api.get('/api/books');
+        console.log('Books Data:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('Get Books Error:', error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ CREATE BOOK
+export const createBook = async (data: FormData) => {
+    try {
+        const token = useTokenStore.getState().token;
+        const response = await api.post('/api/books', data, {
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+                Authorization: `Bearer ${token}`,
             },
         });
-        return response.data; // You can return the message or status here
-    } catch (error) {
-        console.error('Error deleting book:', error);
-        throw error; // Re-throwing error for further handling if needed
+        console.log('Book Created:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('Create Book Error:', error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// ✅ DELETE BOOK
+export const deleteBook = async (id: string) => {
+    try {
+        const token = useTokenStore.getState().token;
+        const response = await api.delete(`/api/books/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        console.log('Book Deleted:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('Delete Book Error:', error.response?.data || error.message);
+        throw error;
     }
 };
