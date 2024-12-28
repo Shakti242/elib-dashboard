@@ -42,7 +42,7 @@ const BooksPage = () => {
   const queryClient = useQueryClient();
 
   // Fetch books data
-  const { data, isLoading, isError } = useQuery({
+  const { data } = useQuery({
     queryKey: ['books'],
     queryFn: getBooks,
     staleTime: 10000, // in milliseconds
@@ -53,8 +53,6 @@ const BooksPage = () => {
     mutationFn: (bookId: string) => deleteBook(bookId), // Delete book function
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
-
-
     },
   });
 
@@ -135,18 +133,16 @@ const BooksPage = () => {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Toggle menu</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Link to={`/dashboard/books/edit/${book._id}`}>Edit</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDelete(book._id)}>
                           Delete
                         </DropdownMenuItem>

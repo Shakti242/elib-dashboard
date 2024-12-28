@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-
+import { CirclePlus } from "lucide-react";
+import Link from "next/link";
 
 const HomePage = () => {
     return (
@@ -16,11 +17,16 @@ const HomePage = () => {
                     <p className="mb-4 text-muted-foreground">
                         You don't have any books yet. Start adding some.
                     </p>
-                    <Button>Add Books</Button>
+                    <Link href="/dashboard/books/create">
+                        <Button>
+                            <CirclePlus size={20} />
+                            <span className="ml-2">Add book</span>
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </>
-    )
-}
+    );
+};
 
 export default HomePage;
