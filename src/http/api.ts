@@ -54,8 +54,16 @@ export const updateBook = async (id: string, updatedData: Partial<Book>) => {
         throw new Error('Token is missing. Please log in again.');
     }
 
+    // Log updatedData to check for missing fields
+    console.log('Updated Data:', updatedData);
+
+    // Validate updatedData to ensure it contains necessary fields
+    if (!updatedData.title || !updatedData.genre || !updatedData.author?.name) {
+        throw new Error('Missing required fields for updating the book.');
+    }
+
     try {
-        const response = await api.put(`/api/books/${id}`, updatedData, {
+        const response = await api.patch(`/api/books/${id}`, updatedData, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -64,9 +72,12 @@ export const updateBook = async (id: string, updatedData: Partial<Book>) => {
         return response;
     } catch (error: any) {
         console.error('API Error:', error.response?.data || error.message);
+        console.error('Response status:', error.response?.status);
+        console.error('Response headers:', error.response?.headers);
         throw error;
     }
 };
+
 
 
 // Delete a book

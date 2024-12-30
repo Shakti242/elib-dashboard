@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useRef, useState } from 'react';
+import { useRef, useState } from 'react'; // Import useState
 import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
@@ -33,23 +34,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getBooks, deleteBook } from '@/http/api';
+import { getBooks, deleteBook, updateBook } from '@/http/api'; // Import updateBook API call
 import useTokenStore from '@/store';
 import { Book } from '@/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CirclePlus, MoreHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
 const BooksPage = () => {
-  // const [selectedBook, setSelectedBook] = useState<Book | null>(null); // State to store the selected book
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
-  const [editedBook, setEditedBook] = useState<Book | null>(null); // State to store the book being edited
-
-
-
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null); // State to store the selected book
+  const [updatedBook, setUpdatedBook] = useState<Book | null>(null); // State to manage the updated book data
   const queryClient = useQueryClient();
 
   // Fetch books data
@@ -91,16 +89,19 @@ const BooksPage = () => {
 
   // Function to handle the "Edit" button click
   const handleEditClick = (book: Book) => {
-    setEditedBook(book); // Set the book to be edited
-    setIsDialogOpen(true); // Open the dialog
+    setSelectedBook(book); // Set the selected book for editing
+    setUpdatedBook(book); // Set the initial data to the state for controlled inputs
   };
 
-  // Handle the dialog save
-  const handleSave = () => {
-    if (editedBook) {
-      // Handle the save functionality here (e.g., update the book in the database)
-      console.log('Saving book:', editedBook);
-      setIsDialogOpen(false); // Close the dialog
+  const handleUpdate = async () => {
+    if (!updatedBook) return;
+    try {
+      await updateBook(updatedBook._id, updatedBook);
+      alert('Book updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+    } catch (error) {
+      console.error('Failed to update book:', error);
+      alert('Failed to update the book.');
     }
   };
 
@@ -126,50 +127,39 @@ const BooksPage = () => {
         </Link>
       </div>
 
-      {/* Dialog for editing a book */}
-      {editedBook && (
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {selectedBook && (
+        <AlertDialog open={!!selectedBook} onOpenChange={(open) => !open && setSelectedBook(null)}>
           <AlertDialogTrigger asChild>
-            {/* Invisible button to trigger the dialog */}
-            <Button aria-label="Edit" />
+            <Button>Edit</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Edit Book</AlertDialogTitle>
               <AlertDialogDescription>
-                Update the details of the book.
+                Update the book details below:
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="grid gap-4">
-              <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  defaultValue={editedBook.title}
-                  onChange={(e) => setEditedBook({ ...editedBook, title: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="genre">Genre</Label>
-                <Input
-                  id="genre"
-                  defaultValue={editedBook.genre}
-                  onChange={(e) => setEditedBook({ ...editedBook, genre: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="createdAt">Created At</Label>
-                <Input
-                  id="createdAt"
-                  defaultValue={editedBook.createdAt}
-                  onChange={(e) => setEditedBook({ ...editedBook, createdAt: e.target.value })}
-                />
-              </div>
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={updatedBook?.title || ''}
+                onChange={(e) => setUpdatedBook({ ...updatedBook!, title: e.target.value })}
+              />
             </div>
+            <div>
+              <Label htmlFor="genre">Genre</Label>
+              <Input
+                id="genre"
+                value={updatedBook?.genre || ''}
+                onChange={(e) => setUpdatedBook({ ...updatedBook!, genre: e.target.value })}
+              />
+            </div>
+
+
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setIsDialogOpen(false)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleSave}>Save</AlertDialogAction>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleUpdate}>Update</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -230,14 +220,14 @@ const BooksPage = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => handleEditClick(book)}>
+                          Edit
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDelete(book._id)}>
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button aria-haspopup="true" size="icon" variant="ghost" onClick={() => handleEditClick(book)}>
-                      Edit
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
