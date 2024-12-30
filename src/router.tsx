@@ -28,6 +28,10 @@ const router = createBrowserRouter([
                 path: 'books/create',
                 element: <CreateBook />,
             },
+            // {
+            //     path: 'books/edit/:id', // Dynamic route for editing books
+            //     element: <EditBook bookId={''} />,   // Component for editing a book
+            // },
         ],
     },
     {

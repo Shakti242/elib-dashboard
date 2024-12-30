@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
@@ -32,13 +33,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getBooks, deleteBook } from '@/http/api'; // Import deleteBook API call
+import { getBooks, deleteBook } from '@/http/api';
+import useTokenStore from '@/store';
 import { Book } from '@/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CirclePlus, MoreHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 const BooksPage = () => {
+  // const [selectedBook, setSelectedBook] = useState<Book | null>(null); // State to store the selected book
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
+  const [editedBook, setEditedBook] = useState<Book | null>(null); // State to store the book being edited
+
+
+
   const queryClient = useQueryClient();
 
   // Fetch books data
@@ -50,16 +61,46 @@ const BooksPage = () => {
 
   // Mutation for deleting a book
   const { mutate: deleteBookMutate } = useMutation({
-    mutationFn: (bookId: string) => deleteBook(bookId), // Delete book function
+    mutationFn: (bookId: string) => {
+      const token = useTokenStore.getState().token;
+      if (!token) {
+        throw new Error('Token is missing. Please log in again.');
+      }
+      return deleteBook(bookId, token);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
+      alert('Book deleted successfully!');
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete book:', error.response?.data || error.message);
+      alert(`Failed to delete the book: ${error.response?.data?.message || error.message}`);
     },
   });
 
   // Function to handle deleting a book
-  const handleDelete = (bookId: string) => {
+  const handleDelete = async (bookId: string) => {
     if (window.confirm('Are you sure you want to delete this book?')) {
-      deleteBookMutate(bookId);
+      try {
+        await deleteBookMutate(bookId);
+      } catch (error) {
+        console.error('Delete failed:', error);
+      }
+    }
+  };
+
+  // Function to handle the "Edit" button click
+  const handleEditClick = (book: Book) => {
+    setEditedBook(book); // Set the book to be edited
+    setIsDialogOpen(true); // Open the dialog
+  };
+
+  // Handle the dialog save
+  const handleSave = () => {
+    if (editedBook) {
+      // Handle the save functionality here (e.g., update the book in the database)
+      console.log('Saving book:', editedBook);
+      setIsDialogOpen(false); // Close the dialog
     }
   };
 
@@ -84,6 +125,55 @@ const BooksPage = () => {
           </Button>
         </Link>
       </div>
+
+      {/* Dialog for editing a book */}
+      {editedBook && (
+        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <AlertDialogTrigger asChild>
+            {/* Invisible button to trigger the dialog */}
+            <Button aria-label="Edit" />
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Edit Book</AlertDialogTitle>
+              <AlertDialogDescription>
+                Update the details of the book.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="grid gap-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  defaultValue={editedBook.title}
+                  onChange={(e) => setEditedBook({ ...editedBook, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="genre">Genre</Label>
+                <Input
+                  id="genre"
+                  defaultValue={editedBook.genre}
+                  onChange={(e) => setEditedBook({ ...editedBook, genre: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="createdAt">Created At</Label>
+                <Input
+                  id="createdAt"
+                  defaultValue={editedBook.createdAt}
+                  onChange={(e) => setEditedBook({ ...editedBook, createdAt: e.target.value })}
+                />
+              </div>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setIsDialogOpen(false)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleSave}>Save</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       <Card className="mt-6">
         <CardHeader>
@@ -140,14 +230,14 @@ const BooksPage = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>
-                          <Link to={`/dashboard/books/edit/${book._id}`}>Edit</Link>
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDelete(book._id)}>
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    <Button aria-haspopup="true" size="icon" variant="ghost" onClick={() => handleEditClick(book)}>
+                      Edit
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
